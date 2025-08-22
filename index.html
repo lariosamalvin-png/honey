@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Special Interactive Presentation</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden; /* Prevent body scroll */
+        }
+        .font-inter {
+            font-family: 'Inter', sans-serif;
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .animate-bounce-slow {
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(-50%) translateX(-50%);
+            }
+            50% {
+                transform: translateY(-70%) translateX(-50%);
+            }
+        }
+        .animate-fade-in {
+            animation: fadeIn 1.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-key-to-lock {
+            animation: keyToLock 1.5s ease-in-out forwards;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Initial position */
+        }
+
+        @keyframes keyToLock {
+            0% {
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+            50% {
+                top: 40%; /* Move up slightly */
+                left: 55%; /* Move right slightly */
+                transform: translate(-50%, -50%) rotate(20deg);
+            }
+            100% {
+                top: 35%; /* Final position near the lock */
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(45deg); /* Rotated as if turning */
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-100 to-pink-100 flex items-center justify-center font-inter antialiased">
+
+    <div id="app" class="relative w-full max-w-4xl h-[80vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex items-center justify-center p-6 md:p-12">
+        <!-- Content will be rendered here by JavaScript -->
+    </div>
+
+    <script>
+        // State management
+        let view = 'main'; // 'main', 'heartMessage', 'keyLockInitial', 'keyLockUnlocked'
+        let messageIndex = 0;
+        let keyAnimated = false;
+
+        // Messages to display after unlocking
+        const unlockMessages = [
+            "This is what I have been thinking all this time",
+            "I know we're arguing every time",
+            "But you know what",
+            "I love you hon and you're the best thing that has happened to me",
+            "Thank you, here's for more months to come",
+            "Happy 18th months together"
+        ];
+
+        // Utility function to set state and re-render
+        function setView(newView) {
+            view = newView;
+            if (view !== 'keyLockUnlocked') {
+                messageIndex = 0;
+                keyAnimated = false;
+            }
+            renderApp();
+        }
+
+        function setMessageIndex(newIndex) {
+            messageIndex = newIndex;
+            renderApp();
+        }
+
+        function setKeyAnimated(animated) {
+            keyAnimated = animated;
+            renderApp(); // Re-render to show/hide the animating key
+        }
+
+        // Handle 'next' button click on the unlock slide
+        function handleNextMessage() {
+            if (messageIndex < unlockMessages.length - 1) {
+                setMessageIndex(messageIndex + 1);
+            }
+        }
+
+        // SVG Icons (converted from lucide-react for standalone HTML)
+        const HeartIcon = (className) => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`;
+        const KeyRoundIcon = (className) => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}"><path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"/><path d="m21.7 2.3-4.7 4.7"/><path d="m15 7 3-3"/><path d="M3 15h2"/><path d="M7 11h2"/></svg>`;
+        const LockIcon = (className) => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+        const ArrowLeftIcon = (className) => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`;
+
+
+        // Main Slide Component
+        function getMainSlideHtml() {
+            return `
+                <div class="flex flex-col items-center justify-center h-full space-y-8 p-4">
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-pink-600 mb-8 font-inter">
+                        Welcome Hon!
+                    </h1>
+                    <div class="flex space-x-12 md:space-x-24">
+                        <!-- Heart Icon -->
+                        <button
+                            onclick="setView('heartMessage')"
+                            class="group flex flex-col items-center p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-white border border-pink-200 focus:outline-none focus:ring-4 focus:ring-pink-300"
+                        >
+                            ${HeartIcon("w-24 h-24 md:w-32 md:h-32 text-red-500 transition-transform duration-300 group-hover:scale-110")}
+                            <span class="mt-4 text-lg md:text-xl font-semibold text-gray-700 group-hover:text-pink-600">
+                                Click Me!
+                            </span>
+                        </button>
+
+                        <!-- Key Icon -->
+                        <button
+                            onclick="setView('keyLockInitial')"
+                            class="group flex flex-col items-center p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-white border border-yellow-200 focus:outline-none focus:ring-4 focus:ring-yellow-300"
+                        >
+                            ${KeyRoundIcon("w-24 h-24 md:w-32 md:h-32 text-yellow-500 transition-transform duration-300 group-hover:rotate-12")}
+                            <span class="mt-4 text-lg md:text-xl font-semibold text-gray-700 group-hover:text-yellow-600">
+                                The Key
+                            </span>
+                        </button>
+                    </div>
+                    <p class="mt-12 text-lg text-gray-600 font-inter">
+                        Explore the surprises!
+                    </p>
+                </div>
+            `;
+        }
+
+        // Heart Message Slide Component
+        function getHeartMessageSlideHtml() {
+            return `
+                <div class="flex flex-col items-center justify-center h-full p-4 text-center">
+                    <h1 class="text-6xl md:text-8xl font-extrabold text-red-500 animate-pulse font-inter">
+                        I Love You! ❤️
+                    </h1>
+                    <button
+                        onclick="setView('main')"
+                        class="mt-16 flex items-center px-8 py-3 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                    >
+                        ${ArrowLeftIcon("w-6 h-6 mr-2")}
+                        <span class="text-xl font-semibold">Back</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        // Key/Lock Initial Slide Component
+        function getKeyLockInitialSlideHtml() {
+            return `
+                <div class="flex flex-col items-center justify-center h-full p-4 relative">
+                    ${LockIcon("w-48 h-48 md:w-64 md:h-64 text-gray-700 mb-8")}
+                    <div class="w-24 h-24 md:w-32 md:h-32 text-yellow-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-bounce-slow">
+                        ${KeyRoundIcon("w-full h-full")}
+                    </div>
+                    <p class="mt-4 text-2xl font-semibold text-gray-800 font-inter">
+                        Awaiting the unlock...
+                    </p>
+                    <div class="flex space-x-4 mt-12">
+                        <button
+                            onclick="setView('main')"
+                            class="flex items-center px-6 py-3 bg-gray-400 text-white rounded-full shadow-lg hover:bg-gray-500 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-300"
+                        >
+                            ${ArrowLeftIcon("w-5 h-5 mr-2")}
+                            <span class="text-lg font-semibold">Back</span>
+                        </button>
+                        <button
+                            onclick="triggerKeyAnimationAndUnlock()"
+                            class="px-6 py-3 bg-green-500 text-white rounded-full shadow-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300"
+                        >
+                            <span class="text-lg font-semibold">Next</span>
+                        </button>
+                    </div>
+                    ${keyAnimated ? `
+                        <div class="w-24 h-24 md:w-32 md:h-32 text-yellow-500 absolute animate-key-to-lock"
+                             style="animation-duration: 1.5s; animation-fill-mode: forwards;">
+                            ${KeyRoundIcon("w-full h-full")}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function triggerKeyAnimationAndUnlock() {
+            setKeyAnimated(true);
+            setTimeout(() => setView('keyLockUnlocked'), 1500); // Delay for animation
+        }
+
+
+        // Key/Lock Unlocked Slide Component
+        function getKeyLockUnlockedSlideHtml() {
+            return `
+                <div class="flex flex-col items-center justify-center h-full p-4 text-center">
+                    ${LockIcon("w-48 h-48 md:w-64 md:h-64 text-green-500 mb-8")}
+                    <div class="w-24 h-24 md:w-32 md:h-32 text-yellow-500 absolute" style="top: 35%; left: 50%; transform: translate(-50%, -50%) rotate(45deg);">
+                        ${KeyRoundIcon("w-full h-full")}
+                    </div>
+                    <p class="text-3xl md:text-4xl font-extrabold text-gray-800 mt-4 animate-fade-in font-inter">
+                        ${unlockMessages[messageIndex]}
+                    </p>
+                    <div class="flex space-x-4 mt-16">
+                        <button
+                            onclick="setView('main')"
+                            class="flex items-center px-6 py-3 bg-gray-400 text-white rounded-full shadow-lg hover:bg-gray-500 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-300"
+                        >
+                            ${ArrowLeftIcon("w-5 h-5 mr-2")}
+                            <span class="text-lg font-semibold">Back to Start</span>
+                        </button>
+                        ${messageIndex < unlockMessages.length - 1 ? `
+                            <button
+                                onclick="handleNextMessage()"
+                                class="px-6 py-3 bg-purple-500 text-white rounded-full shadow-lg hover:bg-purple-600 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300"
+                            >
+                                <span class="text-lg font-semibold">Next Message</span>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Main rendering function
+        function renderApp() {
+            const appDiv = document.getElementById('app');
+            let content = '';
+
+            switch (view) {
+                case 'main':
+                    content = getMainSlideHtml();
+                    break;
+                case 'heartMessage':
+                    content = getHeartMessageSlideHtml();
+                    break;
+                case 'keyLockInitial':
+                    content = getKeyLockInitialSlideHtml();
+                    break;
+                case 'keyLockUnlocked':
+                    content = getKeyLockUnlockedSlideHtml();
+                    break;
+                default:
+                    content = getMainSlideHtml();
+            }
+            appDiv.innerHTML = content;
+        }
+
+        // Initial render on page load
+        document.addEventListener('DOMContentLoaded', renderApp);
+
+    </script>
+</body>
+</html>
